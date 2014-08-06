@@ -160,8 +160,11 @@ class DownloadCueManager():
         self.cue_list.append(cue)
 
     def get_first_cue(self):
-        cue = self.cue_list[0]
-        cue.change_status('Downloading')
+        for i in range(0,len(self.cue_list)):
+            if self.cue_list[i].get_status() != 'Downloading':
+                cue = self.cue_list[i]
+                cue.change_status('Downloading')
+                break
         return cue
 
     def clean_cue_list(self):
@@ -203,7 +206,11 @@ class UrlOpener():
         return html
 
     def save_file(self, fileurl, filename):
+        forbidden = ["<", ">", "?", ":", "\"", "\\", "*", "|", ";"]
+        for i in forbidden:
+            filename = filename.replace(i, '')
         filename = filename + '.zip'
+
         html = urllib.request.urlopen(fileurl)
         result = open(filename, 'bw')
         result.write(html.read())
@@ -216,12 +223,10 @@ class UrlParser(html.parser.HTMLParser):
         lines = html_to_parse.readlines()
         for line in lines:
             if "Archive Download" in line:
-                print(line)
                 a = re.search('\'http([^\']*)\'', line)
                 if 'archiver' in a.group():
                     f = a.group()
                     f = f[1:-1]
-                    print(f)
         f = f.replace('&amp;', '&')
         return f
 
